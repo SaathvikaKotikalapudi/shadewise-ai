@@ -64,12 +64,12 @@ export default function JourneyPlanner({ t, onShowToast }) {
   };
 
   return (
-    <section className="section section-alt" id="journey">
+    <section className="section section-alt" id="journey" aria-labelledby="journey-heading">
       <div className="container">
         {/* Section Header */}
         <div className="section-header">
           <span className="demo-pill forest">{t.journey.demoBadge}</span>
-          <h2>{t.journey.title}</h2>
+          <h2 id="journey-heading">{t.journey.title}</h2>
           <p>{t.journey.subtitle}</p>
         </div>
 
@@ -77,12 +77,12 @@ export default function JourneyPlanner({ t, onShowToast }) {
         <div className="journey-layout">
           {/* Left: Input Form Card */}
           <div className="planner-card">
-            <form onSubmit={handleCalculate}>
+            <form onSubmit={handleCalculate} aria-label="Journey planning form">
               {/* Origin Field */}
               <div className="form-group">
                 <label htmlFor="origin-input">{t.journey.originLabel}</label>
                 <div className="input-with-icon">
-                  <MapPin className="input-icon" size={18} color="var(--forest-700)" />
+                  <MapPin className="input-icon" size={18} color="var(--forest-700)" aria-hidden="true" />
                   <input
                     id="origin-input"
                     type="text"
@@ -90,7 +90,9 @@ export default function JourneyPlanner({ t, onShowToast }) {
                     placeholder={t.journey.originPlaceholder}
                     value={origin}
                     onChange={(e) => setOrigin(e.target.value)}
+                    maxLength={150}
                     required
+                    aria-required="true"
                   />
                 </div>
               </div>
@@ -101,9 +103,10 @@ export default function JourneyPlanner({ t, onShowToast }) {
                   type="button"
                   className="swap-btn"
                   title={t.journey.swapBtnTitle}
+                  aria-label={t.journey.swapBtnTitle}
                   onClick={handleSwap}
                 >
-                  <ArrowUpDown size={16} />
+                  <ArrowUpDown size={16} aria-hidden="true" />
                 </button>
               </div>
 
@@ -111,7 +114,7 @@ export default function JourneyPlanner({ t, onShowToast }) {
               <div className="form-group">
                 <label htmlFor="dest-input">{t.journey.destinationLabel}</label>
                 <div className="input-with-icon">
-                  <Navigation className="input-icon" size={18} color="var(--amber-orange)" />
+                  <Navigation className="input-icon" size={18} color="var(--amber-orange)" aria-hidden="true" />
                   <input
                     id="dest-input"
                     type="text"
@@ -119,7 +122,9 @@ export default function JourneyPlanner({ t, onShowToast }) {
                     placeholder={t.journey.destinationPlaceholder}
                     value={destination}
                     onChange={(e) => setDestination(e.target.value)}
+                    maxLength={150}
                     required
+                    aria-required="true"
                   />
                 </div>
               </div>

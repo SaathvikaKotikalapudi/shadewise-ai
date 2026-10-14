@@ -93,19 +93,23 @@ export async function queryAiCompanion(prompt, lang = 'en') {
   if (lang === 'te' || /[\u0C00-\u0C7F]/.test(prompt)) {
     return aiDemoResponses.telugu;
   }
-  if (lower.includes('water') || lower.includes('hydrate') || lower.includes('drink')) {
+
+  // Strip brand name so "shadewise" doesn't falsely trigger the "shade" category
+  const queryWithoutBrand = lower.replace(/shadewise(?:\s*ai)?/g, '');
+
+  if (queryWithoutBrand.includes('water') || queryWithoutBrand.includes('hydrate') || queryWithoutBrand.includes('drink')) {
     return aiDemoResponses.water;
   }
-  if (lower.includes('humidity') || lower.includes('sweat') || lower.includes('wet')) {
+  if (queryWithoutBrand.includes('humidity') || queryWithoutBrand.includes('sweat') || queryWithoutBrand.includes('wet')) {
     return aiDemoResponses.humidity;
   }
-  if (lower.includes('exhaustion') || lower.includes('stroke') || lower.includes('symptom') || lower.includes('sign')) {
+  if (queryWithoutBrand.includes('exhaustion') || queryWithoutBrand.includes('stroke') || queryWithoutBrand.includes('symptom') || queryWithoutBrand.includes('sign')) {
     return aiDemoResponses.exhaustion;
   }
-  if (lower.includes('shade') || lower.includes('tree') || lower.includes('canopy') || lower.includes('cool')) {
+  if (queryWithoutBrand.includes('shade') || queryWithoutBrand.includes('tree') || queryWithoutBrand.includes('canopy') || queryWithoutBrand.includes('cool')) {
     return aiDemoResponses.shade;
   }
-  if (lower.includes('pack') || lower.includes('carry') || lower.includes('wear') || lower.includes('cloth')) {
+  if (queryWithoutBrand.includes('pack') || queryWithoutBrand.includes('carry') || queryWithoutBrand.includes('wear') || queryWithoutBrand.includes('cloth')) {
     return aiDemoResponses.pack;
   }
 

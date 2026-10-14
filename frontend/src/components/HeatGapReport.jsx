@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   AlertTriangle,
   Send,
@@ -27,8 +27,16 @@ export default function HeatGapReport({ t, onShowToast }) {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!location.trim() || !description.trim()) {
+    const cleanLocation = location.trim();
+    const cleanDesc = description.trim();
+
+    if (!cleanLocation || !cleanDesc) {
       onShowToast(t.heatGaps.validationError, 'error');
+      return;
+    }
+
+    if (cleanLocation.length < 3) {
+      onShowToast('Please provide a specific landmark or location name (at least 3 characters).', 'error');
       return;
     }
 
@@ -38,9 +46,9 @@ export default function HeatGapReport({ t, onShowToast }) {
       const newReport = {
         id: `gap-${Date.now()}`,
         category,
-        location: location.trim(),
+        location: cleanLocation,
         priority,
-        description: description.trim(),
+        description: cleanDesc,
         upvotes: 1,
         timestamp: 'Just now',
         status: 'Recently logged by commuter',
@@ -67,10 +75,11 @@ export default function HeatGapReport({ t, onShowToast }) {
     onShowToast('Issue confirmed! Upvote registered for municipal prioritization.', 'success');
   };
 
-  const filteredReports =
-    selectedFilter === 'all'
+  const filteredReports = useMemo(() => {
+    return selectedFilter === 'all'
       ? reports
       : reports.filter((r) => r.category === selectedFilter);
+  }, [reports, selectedFilter]);
 
   const getCategoryIcon = (cat) => {
     switch (cat) {
@@ -133,7 +142,9 @@ export default function HeatGapReport({ t, onShowToast }) {
                     placeholder={t.heatGaps.locationPlaceholder}
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
+                    maxLength={120}
                     required
+                    aria-required="true"
                   />
                 </div>
               </div>
@@ -147,6 +158,7 @@ export default function HeatGapReport({ t, onShowToast }) {
                   style={{ width: '100%', borderRadius: 'var(--radius-sm)' }}
                   value={priority}
                   onChange={(e) => setPriority(e.target.value)}
+                  aria-label={t.heatGaps.priorityLabel}
                 >
                   <option value="low">{t.heatGaps.priorities.low}</option>
                   <option value="medium">{t.heatGaps.priorities.medium}</option>
@@ -164,7 +176,9 @@ export default function HeatGapReport({ t, onShowToast }) {
                   placeholder={t.heatGaps.descPlaceholder}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
+                  maxLength={600}
                   required
+                  aria-required="true"
                 />
               </div>
 
@@ -173,8 +187,9 @@ export default function HeatGapReport({ t, onShowToast }) {
                 className="btn btn-accent"
                 style={{ width: '100%', padding: '13px' }}
                 disabled={submitting}
+                aria-busy={submitting}
               >
-                <Send size={16} />
+                <Send size={16} aria-hidden="true" />
                 <span>{submitting ? t.heatGaps.submitting : t.heatGaps.submitBtn}</span>
               </button>
             </form>
@@ -195,6 +210,10 @@ export default function HeatGapReport({ t, onShowToast }) {
             <div className="filter-pills-row" role="tablist" aria-label="Filter heat gap reports">
               <button
                 type="button"
+                role="tab"
+                id="tab-filter-all"
+                aria-selected={selectedFilter === 'all'}
+                aria-controls="reports-list-panel"
                 className={`filter-pill ${selectedFilter === 'all' ? 'active' : ''}`}
                 onClick={() => setSelectedFilter('all')}
               >
@@ -202,6 +221,10 @@ export default function HeatGapReport({ t, onShowToast }) {
               </button>
               <button
                 type="button"
+                role="tab"
+                id="tab-filter-shade"
+                aria-selected={selectedFilter === 'missingShade'}
+                aria-controls="reports-list-panel"
                 className={`filter-pill ${selectedFilter === 'missingShade' ? 'active' : ''}`}
                 onClick={() => setSelectedFilter('missingShade')}
               >
@@ -209,6 +232,10 @@ export default function HeatGapReport({ t, onShowToast }) {
               </button>
               <button
                 type="button"
+                role="tab"
+                id="tab-filter-water"
+                aria-selected={selectedFilter === 'waterUnavailable'}
+                aria-controls="reports-list-panel"
                 className={`filter-pill ${selectedFilter === 'waterUnavailable' ? 'active' : ''}`}
                 onClick={() => setSelectedFilter('waterUnavailable')}
               >
@@ -216,6 +243,10 @@ export default function HeatGapReport({ t, onShowToast }) {
               </button>
               <button
                 type="button"
+                role="tab"
+                id="tab-filter-bus"
+                aria-selected={selectedFilter === 'unshadedBusStop'}
+                aria-controls="reports-list-panel"
                 className={`filter-pill ${selectedFilter === 'unshadedBusStop' ? 'active' : ''}`}
                 onClick={() => setSelectedFilter('unshadedBusStop')}
               >
@@ -223,6 +254,10 @@ export default function HeatGapReport({ t, onShowToast }) {
               </button>
               <button
                 type="button"
+                role="tab"
+                id="tab-filter-heat"
+                aria-selected={selectedFilter === 'extremeHeatZone'}
+                aria-controls="reports-list-panel"
                 className={`filter-pill ${selectedFilter === 'extremeHeatZone' ? 'active' : ''}`}
                 onClick={() => setSelectedFilter('extremeHeatZone')}
               >
@@ -231,63 +266,66 @@ export default function HeatGapReport({ t, onShowToast }) {
             </div>
 
             {/* List of Reports */}
-            {filteredReports.length === 0 ? (
-              <div
-                style={{
-                  background: '#FFFFFF',
-                  padding: '40px 20px',
-                  borderRadius: 'var(--radius-md)',
-                  textAlign: 'center',
-                  border: '1px solid var(--border-subtle)',
-                  color: 'var(--text-muted)',
-                }}
-              >
-                <p>{t.heatGaps.emptyState}</p>
-              </div>
-            ) : (
-              <div className="reports-list">
-                {filteredReports.map((report) => (
-                  <div key={report.id} className="report-card">
-                    <div className="report-header">
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        {getCategoryIcon(report.category)}
-                        <strong style={{ fontSize: '0.98rem', color: 'var(--forest-900)' }}>
-                          {report.location}
-                        </strong>
-                      </div>
-                      <span className={`priority-tag priority-${report.priority}`}>
-                        {report.priority}
-                      </span>
-                    </div>
-
-                    <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>
-                      {report.description}
-                    </p>
-
-                    <div className="report-actions-row">
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <Clock size={14} />
-                          {report.timestamp}
-                        </span>
-                        <span style={{ color: 'var(--forest-700)', fontWeight: 600 }}>
-                          {report.status}
+            <div id="reports-list-panel" role="tabpanel" aria-labelledby={`tab-filter-${selectedFilter === 'all' ? 'all' : selectedFilter}`} aria-live="polite">
+              {filteredReports.length === 0 ? (
+                <div
+                  style={{
+                    background: '#FFFFFF',
+                    padding: '40px 20px',
+                    borderRadius: 'var(--radius-md)',
+                    textAlign: 'center',
+                    border: '1px solid var(--border-subtle)',
+                    color: 'var(--text-muted)',
+                  }}
+                >
+                  <p>{t.heatGaps.emptyState}</p>
+                </div>
+              ) : (
+                <div className="reports-list">
+                  {filteredReports.map((report) => (
+                    <div key={report.id} className="report-card">
+                      <div className="report-header">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          {getCategoryIcon(report.category)}
+                          <strong style={{ fontSize: '0.98rem', color: 'var(--forest-900)' }}>
+                            {report.location}
+                          </strong>
+                        </div>
+                        <span className={`priority-tag priority-${report.priority}`}>
+                          {report.priority}
                         </span>
                       </div>
 
-                      <button
-                        type="button"
-                        className="confirm-issue-btn"
-                        onClick={() => handleConfirmIssue(report.id)}
-                      >
-                        <ThumbsUp size={13} />
-                        <span>{report.upvotes} {confirmedReports[report.id] ? 'Confirmed' : t.heatGaps.confirmBtn}</span>
-                      </button>
+                      <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>
+                        {report.description}
+                      </p>
+
+                      <div className="report-actions-row">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <Clock size={14} aria-hidden="true" />
+                            {report.timestamp}
+                          </span>
+                          <span style={{ color: 'var(--forest-700)', fontWeight: 600 }}>
+                            {report.status}
+                          </span>
+                        </div>
+
+                        <button
+                          type="button"
+                          className="confirm-issue-btn"
+                          aria-label={`Confirm issue at ${report.location}. Currently confirmed by ${report.upvotes} people.`}
+                          onClick={() => handleConfirmIssue(report.id)}
+                        >
+                          <ThumbsUp size={13} aria-hidden="true" />
+                          <span>{report.upvotes} {confirmedReports[report.id] ? 'Confirmed' : t.heatGaps.confirmBtn}</span>
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

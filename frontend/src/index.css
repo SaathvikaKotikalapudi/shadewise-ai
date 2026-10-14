@@ -29,12 +29,12 @@
 
   --heat-extreme: #B02A37;
   --heat-high: #D9534F;
-  --heat-moderate: #F0AD4E;
-  --heat-low: #5CB85C;
+  --heat-moderate: #B45309;
+  --heat-low: #2D6A4F;
 
   --text-primary: #172D21;
-  --text-secondary: #485E50;
-  --text-muted: #73877B;
+  --text-secondary: #324739;
+  --text-muted: #4D6353;
   --text-inverse: #FFFFFF;
 
   --border-subtle: #E8E2D5;
@@ -58,6 +58,27 @@
   /* Transitions */
   --transition-fast: 0.18s ease;
   --transition-normal: 0.28s ease;
+}
+
+/* Accessibility: Skip to Main Content */
+.skip-to-main {
+  position: absolute;
+  top: -70px;
+  left: 20px;
+  background: var(--forest-900);
+  color: #FFFFFF;
+  padding: 10px 18px;
+  border-radius: var(--radius-sm);
+  z-index: 10000;
+  font-weight: 700;
+  font-size: 0.9rem;
+  transition: top var(--transition-fast);
+  box-shadow: var(--shadow-lg);
+}
+
+.skip-to-main:focus-visible {
+  top: 16px;
+  outline: 3px solid var(--sun-gold);
 }
 
 /* Base Resets */
@@ -102,9 +123,13 @@ button {
   transition: all var(--transition-fast);
 }
 
-button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
-  outline: 2px solid var(--forest-600);
-  outline-offset: 2px;
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+  outline: 3px solid var(--forest-700);
+  outline-offset: 3px;
 }
 
 /* Layout Utilities */

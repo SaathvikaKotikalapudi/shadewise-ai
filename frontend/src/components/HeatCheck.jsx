@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Thermometer,
   Flame,
@@ -19,8 +19,14 @@ export default function HeatCheck({ t, lang, onShowToast }) {
   const [selectedCityId, setSelectedCityId] = useState('hyderabad');
   const [weatherData, setWeatherData] = useState(demoCities[0]);
   const [loading, setLoading] = useState(false);
+  const weatherCacheRef = useRef({ hyderabad: demoCities[0] });
 
   useEffect(() => {
+    // Check if city data is already cached to avoid redundant network / simulated delay
+    if (weatherCacheRef.current[selectedCityId]) {
+      setWeatherData(weatherCacheRef.current[selectedCityId]);
+      return;
+    }
     loadCityWeather(selectedCityId);
   }, [selectedCityId]);
 
@@ -28,17 +34,29 @@ export default function HeatCheck({ t, lang, onShowToast }) {
     setLoading(true);
     try {
       const data = await fetchHeatConditions(cityId);
+      weatherCacheRef.current[cityId] = data;
       setWeatherData(data);
     } catch (err) {
       console.error(err);
+      onShowToast('Failed to load heat readings for this location.', 'error');
     } finally {
       setLoading(false);
     }
   };
 
   const handleRefresh = async () => {
-    await loadCityWeather(selectedCityId);
-    onShowToast('Heat conditions refreshed with latest simulated sensor data!', 'info');
+    setLoading(true);
+    try {
+      const data = await fetchHeatConditions(selectedCityId);
+      weatherCacheRef.current[selectedCityId] = data;
+      setWeatherData(data);
+      onShowToast('Heat conditions refreshed with latest simulated sensor data!', 'info');
+    } catch (err) {
+      console.error(err);
+      onShowToast('Failed to refresh heat readings.', 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Determine heat risk visual properties
@@ -46,12 +64,12 @@ export default function HeatCheck({ t, lang, onShowToast }) {
   const riskDescription = t.heatCheck.heatRiskLevels[riskType] || t.heatCheck.heatRiskLevels.high;
 
   return (
-    <section className="section" id="heat-check">
+    <section className="section" id="heat-check" aria-labelledby="heat-check-heading">
       <div className="container">
         {/* Section Header */}
         <div className="section-header">
           <span className="demo-pill">{t.heatCheck.demoBadge}</span>
-          <h2>{t.heatCheck.title}</h2>
+          <h2 id="heat-check-heading">{t.heatCheck.title}</h2>
           <p>{t.heatCheck.subtitle}</p>
         </div>
 
@@ -59,7 +77,7 @@ export default function HeatCheck({ t, lang, onShowToast }) {
         <div className="heat-controls-bar">
           <div className="city-select-box">
             <label htmlFor="city-select-dropdown">
-              <span style={{ display: 'inline-block', marginRight: '6px' }}>📍</span>
+              <span style={{ display: 'inline-block', marginRight: '6px' }} aria-hidden="true">📍</span>
               {t.heatCheck.locationLabel}
             </label>
             <select
@@ -68,6 +86,7 @@ export default function HeatCheck({ t, lang, onShowToast }) {
               value={selectedCityId}
               onChange={(e) => setSelectedCityId(e.target.value)}
               disabled={loading}
+              aria-label={t.heatCheck.locationLabel}
             >
               {demoCities.map((city) => (
                 <option key={city.id} value={city.id}>
@@ -86,15 +105,17 @@ export default function HeatCheck({ t, lang, onShowToast }) {
               className="btn btn-outline btn-sm"
               onClick={handleRefresh}
               disabled={loading}
+              aria-busy={loading}
+              aria-label="Refresh simulated heat readings"
             >
-              <RotateCw size={14} className={loading ? 'spin-anim' : ''} />
+              <RotateCw size={14} className={loading ? 'spin-anim' : ''} aria-hidden="true" />
               <span>{loading ? t.heatCheck.refreshing : t.heatCheck.refreshBtn}</span>
             </button>
           </div>
         </div>
 
         {/* 4 Core Thermal Metrics */}
-        <div className="heat-metrics-grid">
+        <div className="heat-metrics-grid" aria-live="polite" aria-atomic="true">
           {/* Air Temperature */}
           <div className="metric-card">
             <div className="metric-card-top">

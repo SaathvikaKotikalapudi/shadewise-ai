@@ -154,10 +154,16 @@ export default function AiCompanion({ t, lang, onShowToast }) {
             </div>
 
             {/* Chat Messages Body */}
-            <div className="chat-body">
+            <div
+              className="chat-body"
+              role="log"
+              aria-live="polite"
+              aria-atomic="false"
+              aria-label="Conversation with ShadeWise AI Companion"
+            >
               {messages.map((msg) => (
                 <div key={msg.id} className={`chat-msg ${msg.sender}`}>
-                  <div className={`msg-avatar ${msg.sender}`}>
+                  <div className={`msg-avatar ${msg.sender}`} aria-hidden="true">
                     {msg.sender === 'assistant' ? <Bot size={18} /> : <User size={18} />}
                   </div>
                   <div>
@@ -179,12 +185,12 @@ export default function AiCompanion({ t, lang, onShowToast }) {
 
               {/* Thinking Indicator */}
               {isThinking && (
-                <div className="chat-msg assistant">
-                  <div className="msg-avatar assistant">
+                <div className="chat-msg assistant" role="status" aria-label="AI assistant is thinking">
+                  <div className="msg-avatar assistant" aria-hidden="true">
                     <Bot size={18} />
                   </div>
                   <div className="msg-bubble" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Loader2 size={16} className="spin-anim" />
+                    <Loader2 size={16} className="spin-anim" aria-hidden="true" />
                     <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                       {t.companion.thinking}
                     </span>
@@ -198,6 +204,7 @@ export default function AiCompanion({ t, lang, onShowToast }) {
             {/* Chat Input Bar */}
             <form
               className="chat-input-bar"
+              aria-label="Ask heat safety question"
               onSubmit={(e) => {
                 e.preventDefault();
                 handleSendMessage();
@@ -207,7 +214,9 @@ export default function AiCompanion({ t, lang, onShowToast }) {
                 type="text"
                 className="chat-input"
                 placeholder={t.companion.inputPlaceholder}
+                aria-label={t.companion.inputPlaceholder}
                 value={input}
+                maxLength={300}
                 onChange={(e) => setInput(e.target.value)}
                 disabled={isThinking}
               />
@@ -215,8 +224,9 @@ export default function AiCompanion({ t, lang, onShowToast }) {
                 type="submit"
                 className="btn btn-primary btn-sm"
                 disabled={!input.trim() || isThinking}
+                aria-label={t.companion.sendBtn}
               >
-                <Send size={15} />
+                <Send size={15} aria-hidden="true" />
                 <span>{t.companion.sendBtn}</span>
               </button>
             </form>
